@@ -336,40 +336,63 @@ Best regards,
                         valid_emails = df[df[email_col].notna() & (df[email_col] != '')]
                         total_emails = len(valid_emails)
                         
-                        # Use a dictionary to maintain state
-                        progress_state = {'last_progress': -1}
+                        # Use session state to track progress across reruns
+                        if 'progress_state' not in st.session_state:
+                            st.session_state.progress_state = {
+                                'last_update': 0,
+                                'last_progress': -1
+                            }
                         
                         def update_progress(progress):
                             """Update progress bar and status text"""
                             try:
-                                # Only update if progress has changed significantly (1% or more)
-                                current_progress = int(progress * 100)
-                                if current_progress == progress_state['last_progress']:
+                                # Get current timestamp
+                                current_time = time.time()
+                                
+                                # Throttle updates to at most once every 0.5 seconds
+                                if current_time - st.session_state.progress_state['last_update'] < 0.5:
                                     return
                                 
-                                progress_state['last_progress'] = current_progress
+                                # Only update if progress has changed significantly (1% or more)
+                                current_progress = int(progress * 100)
+                                if current_progress == st.session_state.progress_state['last_progress']:
+                                    return
+                                
+                                # Update state
+                                st.session_state.progress_state.update({
+                                    'last_update': current_time,
+                                    'last_progress': current_progress
+                                })
                                 
                                 # Ensure progress is between 0 and 1
                                 safe_progress = max(0.0, min(float(progress), 1.0))
                                 
-                                # Update progress bar
-                                progress_bar.progress(safe_progress)
+                                # Update progress bar with error handling
+                                try:
+                                    progress_bar.progress(safe_progress)
+                                except Exception as e:
+                                    print(f"Progress bar error: {str(e)}")
                                 
                                 # Calculate current email being processed
                                 current = min(int(round(safe_progress * total_emails)), total_emails)
                                 
-                                # Update status text
-                                status_text.text(f"Sending email {current} of {total_emails}...")
+                                # Update status text with error handling
+                                try:
+                                    status_text.text(f"Sending email {current} of {total_emails}...")
+                                except Exception as e:
+                                    print(f"Status text error: {str(e)}")
                                 
                                 # Check for cancellation
-                                if st.session_state.cancelled:
+                                if st.session_state.get('cancelled', False):
                                     raise Exception("Process cancelled by user")
                                     
                             except Exception as e:
-                                # Log the error but don't crash the app
-                                if 'cancelled' not in str(e).lower():
-                                    print(f"Error updating progress: {str(e)}")
-                                if st.session_state.cancelled:
+                                # Only re-raise cancellation exceptions
+                                if 'cancelled' in str(e).lower():
+                                    raise e
+                                # Log other errors but don't crash the app
+                                print(f"Progress update error: {str(e)}")
+                                if st.session_state.get('cancelled', False):
                                     raise Exception("Process cancelled by user")
                         
                         # Call the email sending function
