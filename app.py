@@ -338,11 +338,20 @@ Best regards,
                         
                         def update_progress(progress):
                             """Update progress bar and status text"""
-                            progress_bar.progress(min(progress, 1.0))
-                            current = int(progress * total_emails)
-                            status_text.text(f"Sending email {current} of {total_emails}...")
-                            if st.session_state.cancelled:
-                                raise Exception("Process cancelled by user")
+                            try:
+                                # Ensure progress is between 0 and 1
+                                safe_progress = max(0.0, min(float(progress), 1.0))
+                                progress_bar.progress(safe_progress)
+                                # Calculate current email being processed
+                                current = min(int(round(safe_progress * total_emails)), total_emails)
+                                status_text.text(f"Sending email {current} of {total_emails}...")
+                                if st.session_state.cancelled:
+                                    raise Exception("Process cancelled by user")
+                            except Exception as e:
+                                # Log the error but don't crash the app
+                                print(f"Error updating progress: {str(e)}")
+                                if st.session_state.cancelled:
+                                    raise Exception("Process cancelled by user")
                         
                         # Call the email sending function
                         with st.spinner("Sending emails..."):
