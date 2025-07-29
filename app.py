@@ -336,20 +336,39 @@ Best regards,
                         valid_emails = df[df[email_col].notna() & (df[email_col] != '')]
                         total_emails = len(valid_emails)
                         
+                        # Use a dictionary to maintain state
+                        progress_state = {'last_progress': -1}
+                        
                         def update_progress(progress):
                             """Update progress bar and status text"""
                             try:
+                                # Only update if progress has changed significantly (1% or more)
+                                current_progress = int(progress * 100)
+                                if current_progress == progress_state['last_progress']:
+                                    return
+                                
+                                progress_state['last_progress'] = current_progress
+                                
                                 # Ensure progress is between 0 and 1
                                 safe_progress = max(0.0, min(float(progress), 1.0))
+                                
+                                # Update progress bar
                                 progress_bar.progress(safe_progress)
+                                
                                 # Calculate current email being processed
                                 current = min(int(round(safe_progress * total_emails)), total_emails)
+                                
+                                # Update status text
                                 status_text.text(f"Sending email {current} of {total_emails}...")
+                                
+                                # Check for cancellation
                                 if st.session_state.cancelled:
                                     raise Exception("Process cancelled by user")
+                                    
                             except Exception as e:
                                 # Log the error but don't crash the app
-                                print(f"Error updating progress: {str(e)}")
+                                if 'cancelled' not in str(e).lower():
+                                    print(f"Error updating progress: {str(e)}")
                                 if st.session_state.cancelled:
                                     raise Exception("Process cancelled by user")
                         
