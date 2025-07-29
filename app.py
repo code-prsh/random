@@ -57,10 +57,10 @@ if 'progress' not in st.session_state:
 # Sidebar for SMTP configuration
 with st.sidebar:
     st.header("SMTP Configuration")
-    smtp_server = st.text_input("SMTP Server", "smtp.gmail.com")
-    smtp_port = st.number_input("SMTP Port", value=587, min_value=1, max_value=65535)
-    smtp_username = st.text_input("Your Email")
-    smtp_password = st.text_input("Password/App Password", type="password")
+    smtp_server = st.text_input("SMTP Server", "smtp.gmail.com", key="smtp_server")
+    smtp_port = st.number_input("SMTP Port", value=587, min_value=1, max_value=65535, key="smtp_port")
+    smtp_username = st.text_input("Your Email", key="smtp_username")
+    smtp_password = st.text_input("Password/App Password", type="password", key="smtp_password")
     
     st.session_state.smtp_config = {
         'smtp_server': smtp_server,
@@ -74,7 +74,7 @@ tab1, tab2 = st.tabs(["📤 Send Emails", "📊 Dataset Preview"])
 
 with tab1:
     # File upload
-    uploaded_file = st.file_uploader("Upload Company Dataset (Excel/CSV)", type=['xlsx', 'xls', 'csv'])
+    uploaded_file = st.file_uploader("Upload Company Dataset (Excel/CSV)", type=['xlsx', 'xls', 'csv'], key="file_uploader")
     
     if uploaded_file is not None:
         try:
@@ -96,14 +96,16 @@ with tab1:
                 "Select the column containing email addresses",
                 df.columns,
                 index=0,
-                help="Select the column that contains the recipient email addresses"
+                help="Select the column that contains the recipient email addresses",
+                key="email_column_selector"
             )
             
             company_col = st.selectbox(
                 "Select the column containing company names",
                 df.columns,
                 index=1 if len(df.columns) > 1 else 0,
-                help="Select the column that contains the company names"
+                help="Select the column that contains the company names",
+                key="company_column_selector"
             )
             
             # Additional columns for personalization
@@ -142,25 +144,26 @@ Best regards,
 [Your Name]
 [Your Contact Information]"""
             
-            email_template = st.text_area("Email Template", value=default_template, height=300)
+            email_template = st.text_area("Email Template", value=default_template, height=300, key="email_template")
             
             # User details
             st.subheader("Your Information")
             col1, col2 = st.columns(2)
             with col1:
-                your_name = st.text_input("Your Full Name")
-                your_position = st.text_input("Position You're Applying For")
+                your_name = st.text_input("Your Full Name", key="your_name")
+                your_position = st.text_input("Position You're Applying For", key="your_position")
             with col2:
-                your_email = st.text_input("Your Email")
-                your_phone = st.text_input("Your Phone Number")
+                your_email = st.text_input("Your Email", key="your_email")
+                your_phone = st.text_input("Your Phone Number", key="your_phone")
             
-            custom_message = st.text_area("Custom Message")
+            custom_message = st.text_area("Custom Message", key="custom_message")
             
             # Resume Link Section
             st.subheader("Resume Link")
             resume_link = st.text_input("Google Drive Link to Your Resume", 
                                      placeholder="https://drive.google.com/your-resume-link",
-                                     help="Make sure the link is set to 'Anyone with the link can view'")
+                                     help="Make sure the link is set to 'Anyone with the link can view'",
+                                     key="resume_link")
             
             # Sending Settings Section
             with st.expander("⚙️ Advanced Sending Settings"):
@@ -168,17 +171,17 @@ Best regards,
                                           min_value=1, 
                                           max_value=50, 
                                           value=2,
-                                          key="batch_size")
+                                          key="batch_size_input")
                 delay_between_emails = st.number_input("Delay between emails (seconds)", 
                                                     min_value=1, 
                                                     max_value=60, 
                                                     value=2,
-                                                    key="email_delay")
+                                                    key="email_delay_input")
                 delay_between_batches = st.number_input("Delay between batches (seconds)", 
                                                      min_value=5, 
                                                      max_value=300, 
                                                      value=15,
-                                                     key="batch_delay")
+                                                     key="batch_delay_input")
             
             # Column Selection
             st.markdown("---")
@@ -188,13 +191,15 @@ Best regards,
             email_col = st.selectbox(
                 "Select Email Column",
                 options=df.columns,
-                index=next((i for i, col in enumerate(df.columns) if 'email' in col.lower()), 0)
+                index=next((i for i, col in enumerate(df.columns) if 'email' in col.lower()), 0),
+                key="email_column_selector"
             )
             
             company_col = st.selectbox(
                 "Select Company Name Column",
                 options=df.columns,
-                index=next((i for i, col in enumerate(df.columns) if 'company' in col.lower() or 'org' in col.lower() or 'name' in col.lower()), 0)
+                index=next((i for i, col in enumerate(df.columns) if 'company' in col.lower() or 'org' in col.lower() or 'name' in col.lower()), 0),
+                key="company_column_selector"
             )
             
             # Ready to Send Section
@@ -402,4 +407,4 @@ with tab2:
 
 # Add some space at the bottom
 st.markdown("---")
-st.caption("© 2023 Cold Email Sender | Made with ❤️")
+st.caption("© 2025 Cold Email Sender | Made with ❤️")
