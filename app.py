@@ -192,14 +192,14 @@ Best regards,
                 "Select Email Column",
                 options=df.columns,
                 index=next((i for i, col in enumerate(df.columns) if 'email' in col.lower()), 0),
-                key="email_column_selector"
+                key="email_column_selector_main"
             )
             
             company_col = st.selectbox(
                 "Select Company Name Column",
                 options=df.columns,
                 index=next((i for i, col in enumerate(df.columns) if 'company' in col.lower() or 'org' in col.lower() or 'name' in col.lower()), 0),
-                key="company_column_selector"
+                key="company_column_selector_main"
             )
             
             # Ready to Send Section
@@ -407,4 +407,4 @@ with tab2:
 
 # Add some space at the bottom
 st.markdown("---")
-st.caption("© 2025 Cold Email Sender | Made with ❤️")
+st.caption("© 2023 Cold Email Sender | Made with ❤️")
